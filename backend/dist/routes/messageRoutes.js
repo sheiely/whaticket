@@ -25,6 +25,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+
+const teste = async (req, res) => {
+    return res.send("Esta funcionando");
+};
+
+
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
@@ -39,4 +45,5 @@ messageRoutes.post("/messages/:ticketId", isAuth_1.default, upload.array("medias
 messageRoutes.delete("/messages/:messageId", isAuth_1.default, MessageController.remove);
 messageRoutes.post("/api/messages/send", tokenAuth_1.default, upload.array("medias"), MessageController.send);
 messageRoutes.post("/api/messages/bulk", tokenAuth_1.default, upload.array("medias"), MessageController.bulk);
+messageRoutes.post("/teste", teste);
 exports.default = messageRoutes;
