@@ -10,11 +10,6 @@ const UpdateSettingService = async ({ key, value, companyId }) => {
         where: {
             key,
             companyId
-        },
-        defaults: {
-            key,
-            value,
-            companyId
         }
     });
     if (setting != null && setting?.companyId !== companyId) {

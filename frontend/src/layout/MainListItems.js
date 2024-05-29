@@ -14,6 +14,7 @@ import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
 import PeopleAltOutlinedIcon from "@material-ui/icons/PeopleAltOutlined";
 import ContactPhoneOutlinedIcon from "@material-ui/icons/ContactPhoneOutlined";
 import AccountTreeOutlinedIcon from "@material-ui/icons/AccountTreeOutlined";
+import PlaylistRemoveIcon from '@material-ui/icons/List';
 import FlashOnIcon from "@material-ui/icons/FlashOn";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import CodeRoundedIcon from "@material-ui/icons/CodeRounded";
@@ -469,6 +470,11 @@ const MainListItems = (props) => {
               to="/queues"
               primary={i18n.t("mainDrawer.listItems.queues")}
               icon={<AccountTreeOutlinedIcon />}
+            />
+            <ListItemLink
+              to="/blacklist"
+              primary={i18n.t("mainDrawer.listItems.blacklist")}
+              icon={<PlaylistRemoveIcon />}
             />
             <ListItemLink
               to="/users"

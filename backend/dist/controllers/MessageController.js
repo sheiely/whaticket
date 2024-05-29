@@ -23,7 +23,8 @@ const SendWhatsAppMedia_1 = __importDefault(require("../services/WbotServices/Se
 const SendWhatsAppMessage_1 = __importDefault(require("../services/WbotServices/SendWhatsAppMessage"));
 const ListBlacklist_1 = __importDefault(require("../services/BlacklistsService/ListService"));
 const CreateBulkMesssage_1 = __importDefault(require("../services/BulkMessagesServices/CreateService"));
-
+const ListQueueOptionService_1 = __importDefault(require("../services/QueueOptionService/ListService"));
+const UpdateSetting_1 = __importDefault(require("../services/SettingServices/UpdateSettingService"));
 
 
 const index = async (req, res) => {
@@ -254,3 +255,47 @@ const bulk = async (req, res) => {
    
 };
 exports.bulk = bulk;
+
+
+const treatQueue = async (req, res) => {
+    const queueId = req.body.queueId;
+    const companyId = req.body.companyId;
+    try{
+        if(queueId === undefined){
+            throw new Error("queueId obrigatório");
+        }
+        if(companyId === undefined){
+            throw new Error("companyId é obrigatório");
+        }
+        const options = await ListQueueOptionService_1.default({queueId: queueId});
+        if(options.length == 2){
+            await UpdateSetting_1.default({
+                key: "idQueueBlacklist", 
+                value: queueId, 
+                companyId: companyId
+            });
+            await UpdateSetting_1.default({
+                key: "IdOptionBlaclist", 
+                value: options[1].id, 
+                companyId: companyId
+            });
+            await UpdateSetting_1.default({
+                key: "IdOptionBlaclistRemove", 
+                value: options[0].id, 
+                companyId: companyId
+            });
+            return res.send({body: "Fila de blacklist adicionada com sucesso"});
+        }else{
+            throw new Error("A fila selecionada nao existe, ou tem mais de duas opcoes");
+        }
+        
+    }catch(err){
+        throw new AppError_1.default(err.message);
+    }
+    
+
+
+    
+   
+};
+exports.treatQueue = treatQueue;

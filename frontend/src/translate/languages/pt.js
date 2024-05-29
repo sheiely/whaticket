@@ -442,6 +442,7 @@ const messages = {
           quickMessages: "Respostas Rápidas",
           contacts: "Contatos",
           queues: "Filas & Chatbot",
+          blacklist: "Blacklist",
           tags: "Tags",
           administration: "Administração",
           users: "Usuários",

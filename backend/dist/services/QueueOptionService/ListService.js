@@ -22,6 +22,8 @@ const ListService = async ({ queueId, queueOptionId, parentId }) => {
         where: whereOptions,
         order: [["id", "ASC"]]
     });
+
+
     return queueOptions;
 };
 exports.default = ListService;

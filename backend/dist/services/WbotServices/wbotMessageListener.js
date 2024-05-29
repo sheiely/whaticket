@@ -59,6 +59,7 @@ const VerifyCurrentSchedule_1 = __importDefault(require("../CompanyService/Verif
 const CreateBlacklist_1 = __importDefault(require("../BlacklistsService/CreateService"));
 const RemoveBlacklist_1 = __importDefault(require("../BlacklistsService/DeleteService"));
 const ListBlacklist_1 = __importDefault(require("../BlacklistsService/ListService"));
+const ListOneSetting_1 = __importDefault(require("../SettingServices/ListSettingsServiceOne"));
 
 
 
@@ -1092,13 +1093,27 @@ const handleChartbot = async (ticket, msg, wbot, dontReadTheFirstQuestion = fals
     }
     else if (!(0, lodash_1.isNil)(queue) && (0, lodash_1.isNil)(ticket.queueOptionId) && !dontReadTheFirstQuestion) {
         const option = queue?.options.find((o) => o.option == messageBody);
-        if(queue.id == process.env.ID_QUEUE_BLACKLIST && option.dataValues.id == process.env.ID_OPTION_BLACKLIST){
+        const queue_blacked = await ListOneSetting_1.default({
+            companyId: ticket.dataValues.companyId, 
+            key: "idQueueBlacklist"
+        });
+        const option_no = await ListOneSetting_1.default({
+            companyId: ticket.dataValues.companyId, 
+            key: "IdOptionBlaclist"
+        });;
+        const option_yes = await ListOneSetting_1.default({
+            companyId: ticket.dataValues.companyId, 
+            key: "IdOptionBlaclistRemove"
+        });;;
+
+
+        if(queue.id == queue_blacked.value && option.dataValues.id == option_no.value){
             await (0, CreateBlacklist_1.default)({
                 number: ticket.contact.dataValues.number,
             });
         }
 
-        if(queue.id == process.env.ID_QUEUE_BLACKLIST && option.dataValues.id == process.env.ID_OPTION_BLACKLIST_REMOVE){
+        if(queue.id == queue_blacked.value && option.dataValues.id == option_yes.value){
             const idBlacked = await (0, ListBlacklist_1.default)({
                 number: ticket.contact.dataValues.number,
             });

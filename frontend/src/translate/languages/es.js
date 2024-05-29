@@ -439,6 +439,7 @@ transferTicketModal: {
       quickMessages: "Respuestas Rápidas",
       contacts: "Contactos",
       queues: "Colas y Chatbot",
+      blacklist: "Blacklist",
       tags: "Etiquetas",
       administration: "Administración",
       users: "Usuarios",

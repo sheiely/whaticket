@@ -251,6 +251,7 @@ const messages = {
 					tickets: "Tickets",
 					contacts: "Contacts",
 					queues: "Queues",
+					blacklist: "Blacklist",
 					administration: "Administration",
 					users: "Users",
 					settings: "Settings",

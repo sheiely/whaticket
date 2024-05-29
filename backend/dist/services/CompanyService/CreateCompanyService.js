@@ -257,6 +257,41 @@ const CreateCompanyService = async (companyData) => {
             value: ""
         },
     });
+    await Setting_1.default.findOrCreate({
+        where: {
+            companyId: company.id,
+            key: "idQueueBlacklist"
+        },
+        defaults: {
+            companyId: company.id,
+            key: "idQueueBlacklist",
+            value: ""
+        },
+    });
+    await Setting_1.default.findOrCreate({
+        where: {
+            companyId: company.id,
+            key: "IdOptionBlaclist"
+        },
+        defaults: {
+            companyId: company.id,
+            key: "IdOptionBlaclist",
+            value: ""
+        },
+    });
+    await Setting_1.default.findOrCreate({
+        where: {
+            companyId: company.id,
+            key: "IdOptionBlaclistRemove"
+        },
+        defaults: {
+            companyId: company.id,
+            key: "IdOptionBlaclistRemove",
+            value: ""
+        },
+    });
+
+    
     if (companyData.campaignsEnabled !== undefined) {
         const [setting, created] = await Setting_1.default.findOrCreate({
             where: {
