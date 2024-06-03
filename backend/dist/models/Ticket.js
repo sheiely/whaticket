@@ -12,7 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+
 const sequelize_typescript_1 = require("sequelize-typescript");
+const sequelize_1 = require("sequelize");
 const uuid_1 = require("uuid");
 const Contact_1 = __importDefault(require("./Contact"));
 const Message_1 = __importDefault(require("./Message"));
@@ -184,6 +186,20 @@ __decorate([
     __metadata("design:paramtypes", [Ticket]),
     __metadata("design:returntype", void 0)
 ], Ticket, "setUUID", null);
+
+
+
+
+
+
+__decorate([
+    sequelize_typescript_1.Column({
+        type: sequelize_typescript_1.DataType.JSON
+    }),
+    __metadata("design:type", Object)
+], Ticket.prototype, "stage", void 0);
+
+
 Ticket = __decorate([
     sequelize_typescript_1.Table
 ], Ticket);

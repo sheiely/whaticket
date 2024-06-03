@@ -28,20 +28,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Yup = __importStar(require("yup"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
-const BulkMessages_1 = __importDefault(require("../../models/BulkMessages"));
-const CreateService = async (number, message, ev_id, status, type) => {
-    // const schema = Yup.object().shape({
-    //     number: Yup.string().required().min(3)
-    // });
-    // try {
-    //     await schema.validate({ number });
-    // }
-    // catch (err) {
-    //     throw new AppError_1.default(err.message);
-    // }
-    const Bmsg = await BulkMessages_1.default.create({
-        number, message, ev_id, status, type
+const Events_1 = __importDefault(require("../../models/Events"));
+
+const CreateService = async ({id, name, date}) => {
+
+    const [events] = await Events_1.default.findOrCreate({
+        where:{id, name, date},
+        defaults: {id, name, date}
     });
-    return Bmsg;
+    await events.reload();
+    return events;
 };
 exports.default = CreateService;

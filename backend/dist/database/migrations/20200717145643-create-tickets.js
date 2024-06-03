@@ -37,6 +37,9 @@ module.exports = {
             updatedAt: {
                 type: sequelize_1.DataTypes.DATE(6),
                 allowNull: false
+            },
+            stage: {
+                type: sequelize_1.DataTypes.JSON
             }
         });
     },

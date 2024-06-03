@@ -25,6 +25,8 @@ const QueueOption_1 = __importDefault(require("../models/QueueOption"));
 const Schedule_1 = __importDefault(require("../models/Schedule"));
 const Tag_1 = __importDefault(require("../models/Tag"));
 const Blacklists_1 = __importDefault(require("../models/Blacklists"));
+const Events_1 = __importDefault(require("../models/Events"));
+const Scores_1 = __importDefault(require("../models/Scores"));
 const BulkMessages_1 = __importDefault(require("../models/BulkMessages"));
 const TicketTag_1 = __importDefault(require("../models/TicketTag"));
 const ContactList_1 = __importDefault(require("../models/ContactList"));
@@ -89,6 +91,8 @@ const models = [
     QueueIntegrations_1.default,
     Blacklists_1.default,
     BulkMessages_1.default,
+    Events_1.default,
+    Scores_1.default
 ];
 sequelize.addModels(models);
 exports.default = sequelize;

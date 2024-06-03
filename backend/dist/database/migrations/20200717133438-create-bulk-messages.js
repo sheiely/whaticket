@@ -18,6 +18,18 @@ module.exports = {
                 type: sequelize_1.DataTypes.STRING,
                 allowNull: false
             },
+            ev_id: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: false
+            },
+            status: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false
+            },
+            type: {
+                type: sequelize_1.DataTypes.STRING,
+                allowNull: false
+            },
             createdAt: {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: false

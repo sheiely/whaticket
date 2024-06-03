@@ -42,6 +42,9 @@ messageRoutes.post("/messages/:ticketId", isAuth_1.default, upload.array("medias
 messageRoutes.delete("/messages/:messageId", isAuth_1.default, MessageController.remove);
 messageRoutes.post("/api/messages/send", tokenAuth_1.default, upload.array("medias"), MessageController.send);
 messageRoutes.post("/api/messages/bulk", tokenAuth_1.default, upload.array("medias"), MessageController.bulk);
+messageRoutes.post("/api/event", tokenAuth_1.default, MessageController.createEvent);
+messageRoutes.post("/api/score", tokenAuth_1.default, MessageController.createScore);
+messageRoutes.post("/api/searchDate", tokenAuth_1.default, MessageController.searchDate);
 messageRoutes.post("/treatQueueBlackList",isAuth_1.default, MessageController.treatQueue);
 messageRoutes.post("/teste", teste);
 exports.default = messageRoutes;

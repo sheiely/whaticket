@@ -13,49 +13,54 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_typescript_1 = require("sequelize-typescript");
-const Company_1 = __importDefault(require("./Company"));
-const BulkMessagesOptions_1 = __importDefault(require("./FilesOptions"));
-let BulkMessages = class BulkMessages extends sequelize_typescript_1.Model {
+let Events = class Events extends sequelize_typescript_1.Model {
 };
 __decorate([
     sequelize_typescript_1.PrimaryKey,
     sequelize_typescript_1.AutoIncrement,
     sequelize_typescript_1.Column,
     __metadata("design:type", Number)
-], BulkMessages.prototype, "id", void 0);
+], Events.prototype, "id", void 0);
 
 __decorate([
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], BulkMessages.prototype, "number", void 0);
+], Events.prototype, "name", void 0);
+
+__decorate([
+    sequelize_typescript_1.Column,
+    __metadata("design:type", Date)
+], Events.prototype, "date", void 0);
+
+
 __decorate([
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], BulkMessages.prototype, "message", void 0);
-__decorate([
-    sequelize_typescript_1.Column,
-    __metadata("design:type", Number)
-], BulkMessages.prototype, "ev_id", void 0);
+], Events.prototype, "situation", void 0);
+
 __decorate([
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], BulkMessages.prototype, "status", void 0);
+], Events.prototype, "city", void 0);
+
+
 __decorate([
     sequelize_typescript_1.Column,
     __metadata("design:type", String)
-], BulkMessages.prototype, "type", void 0);
+], Events.prototype, "uf", void 0);
+
+
 __decorate([
     sequelize_typescript_1.CreatedAt,
     __metadata("design:type", Date)
-], BulkMessages.prototype, "createdAt", void 0);
+], Events.prototype, "createdAt", void 0);
+
 __decorate([
     sequelize_typescript_1.UpdatedAt,
     __metadata("design:type", Date)
-], BulkMessages.prototype, "updatedAt", void 0);
+], Events.prototype, "updatedAt", void 0);
 
-BulkMessages = __decorate([
-    (0, sequelize_typescript_1.Table)({
-        tableName: "BulkMessages"
-    })
-], BulkMessages);
-exports.default = BulkMessages;
+Events = __decorate([
+    sequelize_typescript_1.Table
+], Events);
+exports.default = Events;

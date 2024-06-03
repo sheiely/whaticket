@@ -59,6 +59,8 @@ const VerifyCurrentSchedule_1 = __importDefault(require("../CompanyService/Verif
 const CreateBlacklist_1 = __importDefault(require("../BlacklistsService/CreateService"));
 const RemoveBlacklist_1 = __importDefault(require("../BlacklistsService/DeleteService"));
 const ListBlacklist_1 = __importDefault(require("../BlacklistsService/ListService"));
+const ListEvent_1 = __importDefault(require("../EventsServices/ListService"));
+const ListScore_1 = __importDefault(require("../ScoresServices/ListService"));
 const ListOneSetting_1 = __importDefault(require("../SettingServices/ListSettingsServiceOne"));
 
 
@@ -700,6 +702,7 @@ const verifyMediaMessage = async (msg, ticket, contact) => {
     return newMessage;
 };
 const verifyMessage = async (msg, ticket, contact) => {
+    
     const io = (0, socket_1.getIO)();
     const quotedMsg = await verifyQuotedMessage(msg);
     const body = (0, exports.getBodyMessage)(msg);
@@ -750,6 +753,7 @@ const verifyMessage = async (msg, ticket, contact) => {
 };
 exports.verifyMessage = verifyMessage;
 const isValidMsg = (msg) => {
+    
     if (msg.key.remoteJid === "status@broadcast")
         return false;
     try {
@@ -787,6 +791,8 @@ ${JSON.stringify(msg?.message)}`);
             Sentry.setExtra("Mensagem", { BodyMsg: msg.message, msg, msgType });
             Sentry.captureException(new Error("Novo Tipo de Mensagem em isValidMsg"));
         }
+
+        
         return !!ifType;
     }
     catch (error) {
@@ -798,6 +804,7 @@ const Push = (msg) => {
     return msg.pushName;
 };
 const verifyQueue = async (wbot, msg, ticket, contact, mediaSent) => {
+
     const companyId = ticket.companyId;
     const { queues, greetingMessage, maxUseBotQueues, timeUseBotQueues } = await (0, ShowWhatsAppService_1.default)(wbot.id, ticket.companyId);
     if (queues.length === 1) {
@@ -857,6 +864,12 @@ const verifyQueue = async (wbot, msg, ticket, contact, mediaSent) => {
             companyId
         }
     });
+
+
+    
+    
+
+
     /**
      * recebe as mensagens dos usuários e envia as opções de fila
      * tratamento de mensagens para resposta aos usuarios apartir do chatbot/fila.
@@ -870,9 +883,9 @@ const verifyQueue = async (wbot, msg, ticket, contact, mediaSent) => {
             text: (0, Mustache_1.default)(`\u200e${greetingMessage}\n\n${options}`, contact),
         };
         let lastMsg = global_1.map_msg.get(contact.number);
-        let invalidOption = "Opção inválida, por favor, escolha uma opção válida.";
+        let invalidOption = "Escolha uma opção";
         // console.log('getBodyMessage(msg)', getBodyMessage(msg))
-        console.log('textMessage2', textMessage);
+        //console.log('textMessage2', textMessage);
         // map_msg.set(contact.number, lastMsg);
         if (!lastMsg?.msg || (0, exports.getBodyMessage)(msg).includes('#') || lastMsg.msg !== textMessage.text && !lastMsg.invalid_option) {
             const sendMsg = await wbot.sendMessage(`${contact.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, textMessage);
@@ -880,10 +893,14 @@ const verifyQueue = async (wbot, msg, ticket, contact, mediaSent) => {
             await (0, exports.verifyMessage)(sendMsg, ticket, ticket.contact);
         }
         else if (lastMsg.msg !== invalidOption && !lastMsg.invalid_option) {
-            textMessage.text = invalidOption;
-            const sendMsg = await wbot.sendMessage(`${contact.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, textMessage);
-            global_1.map_msg.set(contact.number, { msg: textMessage.text, invalid_option: true });
+            let sendMsg = await wbot.sendMessage(`${contact.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {text: invalidOption});
+            global_1.map_msg.set(contact.number, { msg: invalidOption, invalid_option: true });
             await (0, exports.verifyMessage)(sendMsg, ticket, ticket.contact);
+
+            sendMsg = await wbot.sendMessage(`${contact.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, textMessage);
+            global_1.map_msg.set(contact.number, { msg: textMessage.text, invalid_option: false });
+            await (0, exports.verifyMessage)(sendMsg, ticket, ticket.contact);
+            
         }
     };
     if (choosenQueue) {
@@ -966,21 +983,24 @@ const verifyQueue = async (wbot, msg, ticket, contact, mediaSent) => {
             return;
         }
         //Regra para desabilitar o chatbot por x minutos/horas após o primeiro envio
+        
         const ticketTraking = await (0, FindOrCreateATicketTrakingService_1.default)({ ticketId: ticket.id, companyId });
         let dataLimite = new Date();
         let Agora = new Date();
+        /*
         if (ticketTraking.chatbotAt !== null) {
             dataLimite.setMinutes(ticketTraking.chatbotAt.getMinutes() + (Number(timeUseBotQueues)));
             if (ticketTraking.chatbotAt !== null && Agora < dataLimite && timeUseBotQueues !== "0" && ticket.amountUsedBotQueues !== 0) {
                 return;
             }
-        }
+        }*/
         await ticketTraking.update({
             chatbotAt: null
         });
         if (buttonActive.value === "text") {
             return botText();
         }
+        //trabalhando aki
     }
 };
 const verifyRating = (ticketTraking) => {
@@ -994,6 +1014,7 @@ const verifyRating = (ticketTraking) => {
 };
 exports.verifyRating = verifyRating;
 const handleRating = async (rate, ticket, ticketTraking) => {
+   
     const io = (0, socket_1.getIO)();
     const { complationMessage } = await (0, ShowWhatsAppService_1.default)(ticket.whatsappId, ticket.companyId);
     let finalRate = rate;
@@ -1092,40 +1113,9 @@ const handleChartbot = async (ticket, msg, wbot, dontReadTheFirstQuestion = fals
         // não linha a primeira pergunta
     }
     else if (!(0, lodash_1.isNil)(queue) && (0, lodash_1.isNil)(ticket.queueOptionId) && !dontReadTheFirstQuestion) {
+       
         const option = queue?.options.find((o) => o.option == messageBody);
-        const queue_blacked = await ListOneSetting_1.default({
-            companyId: ticket.dataValues.companyId, 
-            key: "idQueueBlacklist"
-        });
-        const option_no = await ListOneSetting_1.default({
-            companyId: ticket.dataValues.companyId, 
-            key: "IdOptionBlaclist"
-        });;
-        const option_yes = await ListOneSetting_1.default({
-            companyId: ticket.dataValues.companyId, 
-            key: "IdOptionBlaclistRemove"
-        });;;
-
-
-        if(queue.id == queue_blacked.value && option.dataValues.id == option_no.value){
-            await (0, CreateBlacklist_1.default)({
-                number: ticket.contact.dataValues.number,
-            });
-        }
-
-        if(queue.id == queue_blacked.value && option.dataValues.id == option_yes.value){
-            const idBlacked = await (0, ListBlacklist_1.default)({
-                number: ticket.contact.dataValues.number,
-            });
-            if(idBlacked != ""){
-                await (0, RemoveBlacklist_1.default)(
-                    idBlacked[0].dataValues.id
-                );
-            }
-            
-         
-        }
-
+       
 
         if (option) {
             await ticket.update({ queueOptionId: option?.id });
@@ -1348,11 +1338,29 @@ const handleMessageIntegration = async (msg, wbot, queueIntegration, ticket) => 
     }
 };
 exports.handleMessageIntegration = handleMessageIntegration;
+function prettyDate2(time){
+    var hour = time.getHours();
+    if(hour < 10) hour = "0"+hour;
+    var minutes = time.getMinutes();
+    if(minutes < 10) minutes = "0"+minutes;
+    var seconds = time.getSeconds();
+    if(seconds < 10) seconds = "0"+seconds;
+    var beatiTime = hour+":"+minutes+":"+seconds;
+    return beatiTime;
+  } 
 const handleMessage = async (msg, wbot, companyId) => {
     let mediaSent;
     if (!isValidMsg(msg))
         return;
     try {
+
+        
+                  
+
+
+
+
+
         let msgContact;
         let groupContact;
         const isGroup = msg.key.remoteJid?.endsWith("@g.us");
@@ -1416,12 +1424,51 @@ const handleMessage = async (msg, wbot, companyId) => {
         }
         const ticket = await (0, FindOrCreateTicketService_1.default)(contact, wbot.id, unreadMessages, companyId, groupContact);
         await (0, providers_1.provider)(ticket, msg, companyId, contact, wbot);
+        //trabalhando aki-------------------------------------------------
+
+
+       
+        if(msg.message.conversation.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "") == "cancelar mensagens automaticas"){
+            await (0, CreateBlacklist_1.default)({
+                number: ticket.contact.dataValues.number,
+            });
+            await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                text: "nao recebera mais mensagens automaticas"
+            });    
+            return;
+        }
+        if(msg.message.conversation.toLowerCase() == "quero mensagens automaticas"){
+            const idBlacked = await (0, ListBlacklist_1.default)({
+                number: ticket.contact.dataValues.number,
+            });
+            if(idBlacked != ""){
+                await (0, RemoveBlacklist_1.default)(
+                    idBlacked[0].dataValues.id
+                );
+                  
+            }
+            await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                text: "recebera mensagens automaticas"
+            });  
+            return;
+        }
+       
+    
+       
+
+        // ----------------------------------------------------------------------------------------
+
+
+
+
+
         // voltar para o menu inicial
         if (bodyMessage == "#") {
             await ticket.update({
                 queueOptionId: null,
                 chatbot: false,
                 queueId: null,
+                stage: null
             });
             await verifyQueue(wbot, msg, ticket, ticket.contact);
             return;
@@ -1431,6 +1478,12 @@ const handleMessage = async (msg, wbot, companyId) => {
             companyId,
             whatsappId: whatsapp?.id
         });
+
+    
+        
+
+
+
         try {
             if (!msg.key.fromMe) {
                 /**
@@ -1507,7 +1560,7 @@ const handleMessage = async (msg, wbot, companyId) => {
                     debouncedSentMessage();
                     return;
                 }
-                console.log('bodyMaaaaaaa1111aaaaaessage:', bodyMessage);
+                //console.log('bodyMaaaaaaa1111aaaaaessage:', bodyMessage);
                 if (scheduleType.value === "queue" && ticket.queueId !== null) {
                     /**
                      * Tratamento para envio de mensagem quando a fila está fora do expediente
@@ -1689,6 +1742,215 @@ const handleMessage = async (msg, wbot, companyId) => {
                 await handleChartbot(ticket, msg, wbot, dontReadTheFirstQuestion);
             }
         }
+
+
+        //trabalhando akiii -----------
+        var searchResultsQueue = await ListOneSetting_1.default({key: "searchResultsQueue", companyId: companyId});
+
+        if(ticket.dataValues.queueId == searchResultsQueue.dataValues.value && msg.key.fromMe == false){
+
+
+
+            if(ticket.dataValues.stage == null){
+                await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                    text: "Legal, para que eu possa localizar qual evento você participou, informe a data do evento (dd/mm/aa):"
+                });  
+                await ticket.update({
+                    stage: {phase: "1"}
+                });
+
+            }else if(ticket.dataValues.stage.phase == "1"){ 
+                let dateSearched = msg.message.extendedTextMessage.text.replace(/\s/g, '').replace(/\//g, '').replace(/\\/g, '').replace(/-/g, '');
+                var day = dateSearched.slice(0, 2);
+                var mouth = dateSearched.slice(2, 4);
+                var year = dateSearched.slice(4, 6);
+                dateSearched = "20"+year+"-"+mouth+"-"+day;  
+                
+                try{
+                    const searchedEvents = await ListEvent_1.default({date: dateSearched});
+                    if(searchedEvents.length > 0){
+                        var text = "Selecione um evento\n\n";
+                        var stage = {phase: "2"};
+                        var events_listeds = [];
+                        for(var i = 0; i < searchedEvents.length; i++){
+                            text += i+1+" - "+searchedEvents[i].name+"\n";
+                            events_listeds.push(searchedEvents[i].id);
+                        }
+                        stage.events_listed = events_listeds;
+                        text += "\n[ 0 ] - Nenhuma das opções\n[ # ] Voltar para o menu principal";
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: text
+                        });  
+                        await ticket.update({
+                            stage: stage
+                        });
+                    }else{
+                        throw new Error("nada achado");
+                    }
+                }catch(err){
+                    console.log(err.message);
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Não foi possivel achar nenhum evento com essa data\n\n[ 1 ] - Informar outra data\n[ 2 ] - Pesquisar por CPF \n[ # ] Voltar ao menu principal"
+                    }); 
+                    await ticket.update({
+                        stage: {
+                            phase: "4",
+                        }
+                    }); 
+                }
+                
+                
+                
+            }else if(ticket.dataValues.stage.phase == "2"){
+              
+                const ev_id =  msg.message.extendedTextMessage.text;
+                if(ev_id == "0"){
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Que Pena, não é nenhum destes eventos.\n\n[ 1 ] - Informar outra data\n[ 2 ] - Pesquisar por CPF \n[ # ] Voltar ao menu principal"
+                    });  
+                    await ticket.update({
+                        stage: {
+                            phase: "4",
+                        }
+                    }); 
+                }else{
+                    try{
+                        var id_event_def = ticket.dataValues.stage.events_listed[ev_id-1];
+                        if(id_event_def === undefined){
+                            throw new Error();
+                        }
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: "Informe seu Número de Peito, ou 0(zero) se não lembra"
+                        });  
+                        await ticket.update({
+                            stage: {
+                                phase: "3",
+                                event_selected: id_event_def
+                            }
+                            
+                        });
+                    }catch(err){
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: "Não foi possivel achar esse evento, pode tentar escolher denovo?"
+                        }); 
+                    }
+                }
+                
+            }else if(ticket.dataValues.stage.phase == "3"){
+                const number = msg.message.extendedTextMessage.text;
+                if(number == "0"){
+                    
+
+                    var event = await ListEvent_1.default({id:ticket.dataValues.stage.event_selected});
+                    var nameEvent = event[0].dataValues.name.toLowerCase().replace(/\s/g, '-');
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Que Pena, vou te direcionar para o site de resultados deste evento"
+                    });  
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "https://www.cronoserv.com.br/resultado/"+nameEvent+","+event[0].dataValues.id+"/#home"
+                    });  
+                    await ticket.update({
+                        queueOptionId: null,
+                        chatbot: false,
+                        queueId: null,
+                        stage: null
+                    });
+                }else{
+                    try{
+                        var Score = await ListScore_1.default({number: number, event: ticket.dataValues.stage.event_selected})
+                        const evento = Score[0].dataValues.eventObject.dataValues;
+                        const scoreIndividual = Score[0].dataValues;
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: "*Resultado:* \n\n*Evento:* "+evento.name+"\n*Modalidade:* "+scoreIndividual.trial_cod+"\n*Cidade:* "+evento.city+"\n\n*Nome:* "+scoreIndividual.name+
+                            "\n*Numero:* "+scoreIndividual.number+"\n*Tempo Liquido:* "+prettyDate2(scoreIndividual.liquid_time)+"\n*Tempo Bruto:* "+
+                            prettyDate2(scoreIndividual.time_raw)+"\n*Tempo Apurado:* "+prettyDate2(scoreIndividual.time_determined)+"\n\n*Colocações:*\n*Geral:* "+scoreIndividual.general_placement+"° Colocação"+
+                            "\n*Por Sexo:* "+scoreIndividual.gender_placement+"° Colocação"+
+                            "\n*categoria principal:* "+scoreIndividual.principal_placement+"° Colocação"+
+                            "\n*categoria 2:* "+scoreIndividual.secundary_placement+"° Colocação"
+                            +"\n\n*Ritmo:* "+scoreIndividual.pace+"\n*Distância:* "+scoreIndividual.distance
+                        }); 
+                        await ticket.update({
+                            queueOptionId: null,
+                            chatbot: false,
+                            queueId: null,
+                            stage: null
+                        });
+                    }catch(err){
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: "Não consegui achar esse número, pode tentar digitar denovo?"
+                        }); 
+                    }
+                    
+                }
+                //CONTINUAR AKI
+            }else if(ticket.dataValues.stage.phase == "4"){
+                const number = msg.message.extendedTextMessage.text;
+                if(number == "1"){
+                    await ticket.update({
+                        stage: null
+                    });
+                    await handleMessage(msg, wbot, companyId);
+                }else if(number == "2"){
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Informe o CPF com pontos '.' e barras '-':"
+                    });  
+                    await ticket.update({
+                        stage: {
+                            phase: "5"
+                        }
+                    });
+                }else{
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Por favor, escolha uma opção válida"
+                    }); 
+                }
+            }else if(ticket.dataValues.stage.phase == "5"){
+                const cpf = msg.message.extendedTextMessage.text;
+                try{
+                    var Score = await ListScore_1.default({cpf: cpf})
+                    if(Score.length == 0){
+                        throw new Error();
+                    }
+                    for(var i = 0; i < Score.length; i++){
+                        const evento = Score[i].dataValues.eventObject.dataValues;
+                        const scoreIndividual = Score[i].dataValues;
+                        await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                            text: "*Resultado:* \n\n*Evento:* "+evento.name+"\n*Modalidade:* "+scoreIndividual.trial_cod+"\n*Cidade:* "+evento.city+"\n\n*Nome:* "+scoreIndividual.name+
+                            "\n*Numero:* "+scoreIndividual.number+"\n*Tempo Liquido:* "+prettyDate2(scoreIndividual.liquid_time)+"\n*Tempo Bruto:* "+
+                            prettyDate2(scoreIndividual.time_raw)+"\n*Tempo Apurado:* "+prettyDate2(scoreIndividual.time_determined)+"\n\n*Colocações:*\n*Geral:* "+scoreIndividual.general_placement+"° Colocação"+
+                            "\n*Por Sexo:* "+scoreIndividual.gender_placement+"° Colocação"+
+                            "\n*categoria principal:* "+scoreIndividual.principal_placement+"° Colocação"+
+                            "\n*categoria 2:* "+scoreIndividual.secundary_placement+"° Colocação"
+                            +"\n\n*Ritmo:* "+scoreIndividual.pace+"\n*Distância:* "+scoreIndividual.distance
+                        }); 
+                    }
+                    await ticket.update({
+                        queueOptionId: null,
+                        chatbot: false,
+                        queueId: null,
+                        stage: null
+                    });
+                }catch(err){
+                    console.log(err.message);
+                    await wbot.sendMessage(`${ticket.contact.dataValues.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"}`, {
+                        text: "Não foi possivel achar nenhum evento com esse cpf\n\n[ 1 ] - Informar data\n[ 2 ] - Pesquisar por outro CPF \n[ # ] Voltar ao menu principal"
+                    }); 
+                    await ticket.update({
+                        stage: {
+                            phase: "4",
+                        }
+                    }); 
+                }
+                
+                
+            }
+            return;
+        }
+
+
+
+
+     
     }
     catch (err) {
         console.log(err);
@@ -1803,6 +2065,7 @@ const wbotMessageListener = async (wbot, companyId) => {
                 });
                 if (!messageExists) {
                     // console.log('body-------------------:', message);
+                   
                     await handleMessage(message, wbot, companyId);
                     await verifyRecentCampaign(message, companyId);
                     await verifyCampaignMessageAndCloseTicket(message, companyId);

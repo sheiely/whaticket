@@ -48,6 +48,7 @@ const UpdateTicketService = async ({ ticketData, ticketId, companyId }) => {
         let { queueId, userId, whatsappId } = ticketData;
         let chatbot = ticketData.chatbot || false;
         let queueOptionId = ticketData.queueOptionId || null;
+        let stage = ticketData.stage || null;
         let promptId = ticketData.promptId || null;
         let useIntegration = ticketData.useIntegration || false;
         let integrationId = ticketData.integrationId || null;
@@ -189,7 +190,8 @@ const UpdateTicketService = async ({ ticketData, ticketId, companyId }) => {
             userId,
             whatsappId,
             chatbot,
-            queueOptionId
+            queueOptionId,
+            stage
         });
         await ticket.reload();
         if (status !== undefined && ["pending"].indexOf(status) > -1) {

@@ -260,36 +260,15 @@ const CreateCompanyService = async (companyData) => {
     await Setting_1.default.findOrCreate({
         where: {
             companyId: company.id,
-            key: "idQueueBlacklist"
+            key: "searchResultsQueue"
         },
         defaults: {
             companyId: company.id,
-            key: "idQueueBlacklist",
+            key: "searchResultsQueue",
             value: ""
         },
     });
-    await Setting_1.default.findOrCreate({
-        where: {
-            companyId: company.id,
-            key: "IdOptionBlaclist"
-        },
-        defaults: {
-            companyId: company.id,
-            key: "IdOptionBlaclist",
-            value: ""
-        },
-    });
-    await Setting_1.default.findOrCreate({
-        where: {
-            companyId: company.id,
-            key: "IdOptionBlaclistRemove"
-        },
-        defaults: {
-            companyId: company.id,
-            key: "IdOptionBlaclistRemove",
-            value: ""
-        },
-    });
+    
 
     
     if (companyData.campaignsEnabled !== undefined) {

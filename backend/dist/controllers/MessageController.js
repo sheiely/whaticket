@@ -25,6 +25,10 @@ const ListBlacklist_1 = __importDefault(require("../services/BlacklistsService/L
 const CreateBulkMesssage_1 = __importDefault(require("../services/BulkMessagesServices/CreateService"));
 const ListQueueOptionService_1 = __importDefault(require("../services/QueueOptionService/ListService"));
 const UpdateSetting_1 = __importDefault(require("../services/SettingServices/UpdateSettingService"));
+const CreateEvent_1 = __importDefault(require("../services/EventsServices/CreateService"));
+const ListEvent_1 = __importDefault(require("../services/EventsServices/ListService"));
+const CreateScore_1 = __importDefault(require("../services/ScoresServices/CreateService"));
+const ShowTicket_1 = __importDefault(require("../services/TicketServices/ShowTicketService"));
 
 
 const index = async (req, res) => {
@@ -109,7 +113,20 @@ const send = async (req, res) => {
         };
         const contact = await (0, CreateOrUpdateContactService_1.default)(contactData);
         const ticket = await (0, FindOrCreateTicketService_1.default)(contact, whatsapp.id, 0, companyId);
+        const idBlacked = await (0, ListBlacklist_1.default)({
+            number: number,
+        });
+      
+        if(idBlacked != ""){
+            await (0, CreateBulkMesssage_1.default)(number, body, messageData.ev_id, "Numero na blacklist", messageData.type);
+            throw new Error("Numero na blacklist");
+        }
+
+
+
         if (medias) {
+            console.log("media aki oh uai");
+            console.log(medias);
             await Promise.all(medias.map(async (media) => {
                 await req.app.get("queues").messageQueue.add("SendMessage", {
                     whatsappId,
@@ -138,6 +155,16 @@ const send = async (req, res) => {
             }, 1000);
         }
         (0, SetTicketMessagesAsRead_1.default)(ticket);
+        
+        if(messageData.ev_id){
+            if(medias){
+                await (0, CreateBulkMesssage_1.default)(number,"mensagem com midia", messageData.ev_id, "Mensagem enviada com sucesso", messageData.type);
+            }else{
+                await (0, CreateBulkMesssage_1.default)(number, body, messageData.ev_id, "Mensagem enviada com sucesso", messageData.type);
+            }
+            
+        }
+        
         return res.send({ mensagem: "Mensagem enviada" });
     }
     catch (err) {
@@ -151,8 +178,10 @@ const send = async (req, res) => {
 };
 exports.send = send;
 
-const bulk = async (req, res) => {
-    let errors = [];
+async function processBulk(req){
+   
+   
+
     const tamanho = req.body.array.length;
     const { whatsappId } = req.params;
     
@@ -167,11 +196,8 @@ const bulk = async (req, res) => {
      
    
         if (messageData.number === undefined) {
-            errors.push({number_index_error:i, message:"Precisa do numero"});
             continue;
-            //throw new Error("O número é obrigatório");
         }
-        
         const numberToTest = messageData.number;
         const body = messageData.body;
         const companyId = whatsapp.companyId;
@@ -180,7 +206,7 @@ const bulk = async (req, res) => {
           CheckValidNumber = await (0, CheckNumber_1.default)(numberToTest, companyId);
           
         }catch(err){
-          errors.push({number_index_error:i, message:"numero invalido"});
+          await (0, CreateBulkMesssage_1.default)(number, body, messageData.ev_id, "Numero invalido", messageData.type);
           continue;
         }
         
@@ -192,11 +218,11 @@ const bulk = async (req, res) => {
         });
       
         if(idBlacked != ""){
-            errors.push({number_index_error:i, message:"Numero na blacklist"});
+            await (0, CreateBulkMesssage_1.default)(number, body, messageData.ev_id, "Numero na blacklist", messageData.type);
             continue;
         }
 
-        await (0, CreateBulkMesssage_1.default)(number, body);
+        
 
         const profilePicUrl = await (0, GetProfilePicUrl_1.default)(number, companyId);
           
@@ -243,16 +269,19 @@ const bulk = async (req, res) => {
             }, 1000);
         }
         (0, SetTicketMessagesAsRead_1.default)(ticket);
-        
-        //return res.send({ mensagem: "Mensagem enviada" });
+        await (0, CreateBulkMesssage_1.default)(number, body, messageData.ev_id, "Mensagem enviada com sucesso", messageData.type);
+      
       }
     }
     catch (err) {
         throw new AppError_1.default(err.message);
     }
+   return;
+}
 
-    return res.send({body:"Acao finalizada", errors: errors});
-   
+const bulk = async (req, res) => {
+    processBulk(req);
+    return res.send({body:"Acao será processada, olhe o resultado no servidor apos alguns minutos"});
 };
 exports.bulk = bulk;
 
@@ -267,27 +296,13 @@ const treatQueue = async (req, res) => {
         if(companyId === undefined){
             throw new Error("companyId é obrigatório");
         }
-        const options = await ListQueueOptionService_1.default({queueId: queueId});
-        if(options.length == 2){
-            await UpdateSetting_1.default({
-                key: "idQueueBlacklist", 
+        await UpdateSetting_1.default({
+                key: "searchResultsQueue", 
                 value: queueId, 
                 companyId: companyId
-            });
-            await UpdateSetting_1.default({
-                key: "IdOptionBlaclist", 
-                value: options[1].id, 
-                companyId: companyId
-            });
-            await UpdateSetting_1.default({
-                key: "IdOptionBlaclistRemove", 
-                value: options[0].id, 
-                companyId: companyId
-            });
-            return res.send({body: "Fila de blacklist adicionada com sucesso"});
-        }else{
-            throw new Error("A fila selecionada nao existe, ou tem mais de duas opcoes");
-        }
+        });
+        return res.send({body: "Fila de blacklist adicionada com sucesso"});
+       
         
     }catch(err){
         throw new AppError_1.default(err.message);
@@ -299,3 +314,43 @@ const treatQueue = async (req, res) => {
    
 };
 exports.treatQueue = treatQueue;
+
+const createEvent = async (req, res) => {
+    try{
+        const event = await CreateEvent_1.default({id: req.body.id, name: req.body.name, date: req.body.date});
+        return res.send("Evento adicionado com sucesso");
+    }catch(err){
+        throw new AppError_1.default(err.message);
+    }
+
+};
+exports.createEvent = createEvent;
+
+const createScore = async (req, res) => {
+    try{
+        const event = await CreateScore_1.default({id:req.body.id , name:req.body.name, number: req.body.number, time: req.body.time, event: req.body.event});
+        return res.send("Score adicionado com sucesso");
+    }catch(err){
+        throw new AppError_1.default(err.message);
+    }
+
+};
+exports.createScore = createScore;
+
+
+
+const searchDate = async (req, res) => {
+    const ticket = await ShowTicketService_1.default(1, 1);
+    await ticket.update({
+        stage: {
+            phase: "1",
+            events_listed: [],
+            event_selected: "4",
+            number: "2",
+            cpf: "918"
+        }
+    });            
+    return res.send(ticket);
+
+};
+exports.searchDate = searchDate;
